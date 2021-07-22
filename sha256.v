@@ -27,8 +27,8 @@ module sha256(
     output reg[3:0] test
   //  output reg [255:0] line 
     );
-    reg [63:0] workingConst [2**6-1:0];
-    reg [63:0] readConst [2**6-1:0];
+    reg [31:0] workingConst [2**6-1:0];
+    reg [31:0] readConst [2**6-1:0];
     reg read;//for ram
     reg write;
     //function reg for shr
