@@ -31,8 +31,11 @@ module rotr
     integer i;
     reg A;
     reg [31:0] dataCopy;
-    initial dataCopy = data[range:0];
-    assign outData = (data<<range)+dataCopy; 
+    initial begin 
+        dataCopy[31:32-range] = data[range-1:0];
+        dataCopy[31-range:0] = 'b0;
+    end
+    assign outData = (data>>range)+dataCopy; 
     /*
     always@(posedge clk)begin 
         if(start)begin 
