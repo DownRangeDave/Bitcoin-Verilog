@@ -33,7 +33,7 @@ module rotr
     reg [31:0] dataCopy;
     initial begin 
         dataCopy[31:32-range] = data[range-1:0];
-        dataCopy[31-range:0] = 'b0;
+        dataCopy[31-range:0] = 0;
     end
     assign outData = (data>>range)+dataCopy; 
     /*
