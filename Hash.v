@@ -26,7 +26,8 @@ module Hash(
     input wire [2047:0] constantValues,
     output reg status
     );
-    reg [1023:0] block = 0;
+    reg [1023:0] msg = 0;
+    reg [2047:0] block [1:0];
     reg [0:1] blockCount;
     integer i, j, k, m;
     always @ (*) begin 
@@ -36,25 +37,24 @@ module Hash(
         $display("FAIL");
         end
         else begin
-            block[1023:384] = header[639:0];
-            ///*
+            msg[1023:384] = header[639:0];
+            /*
             $display("Header         : ", "%b", header);
-            $display("block          : ", "%b", block);
-            $display(block[384]);
+            $display("msg          : ", "%b", msg);
             $display("Hash Values    : ", "%b", initialHashValues);
             $display("Constant Values: ", "%b", constantValues);
-            //*/
-            for(i=0; i<2; i=i+1) begin
+            */
+            for(i=0; i<1; i=i+1) begin
                 if(i==0) begin
-                    block[383] = 1; //Separator
+                    msg[383] = 1; //Separator
                     //Message Length
-                    block[7] = 1;
-                    block[9] = 1;
+                    msg[7] = 1;
+                    msg[9] = 1;
                     blockCount = 2;
                 end
                 if(i==1) begin
-                    block[255] = 1; //Separator
-                    block[8] = 1; //Message Length
+                    msg[255] = 1; //Separator
+                    msg[8] = 1; //Message Length
                     blockCount = 1;
                 end
             end
