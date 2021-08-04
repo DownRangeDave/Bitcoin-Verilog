@@ -29,6 +29,7 @@ module Hash(
     reg [1023:0] msg = 0;
     reg [2047:0] block [1:0];
     reg [0:1] blockCount;
+    reg [31:0] binaryAddition [8:0];
     integer i, j, k, m;
     always @ (*) begin 
         status = 0;
@@ -49,7 +50,7 @@ module Hash(
                     msg[383] = 1; //Separator
                     //Message Length
                     msg[7] = 1;
-                    msg[9] = 1;
+		    msg[9] = 1;
                     blockCount = 2;
                 end
                 if(i==1) begin
@@ -57,9 +58,21 @@ module Hash(
                     msg[8] = 1; //Message Length
                     blockCount = 1;
                 end
-            end
-            $display("block          : ", "%b", block);
-            for(i=0; i<blockCount; i=i+1) begin
+                $display("msg          : ", "%b", msg);
+                //Split message into blocks based on blockCount
+	        for(j=0; j<blockCount; j=j+1) begin
+		    block[j][2047:1536] = msg[((512*blockCount)-(512*j))-1-:512];
+		    $display("Block: ", j);
+		    for(k=16; k<64; k=k+1)begin
+			    binaryAddition[1] =  block[j][2047-(32*(k-7))-:32];
+			    binaryAddition[3] =  block[j][2047-(32*(k-16))-:32];
+			    //$display(k," binaryAddition[1]:", "%b", binaryAddition[1]);
+			    //$display(k," binaryAddition[3]:", "%b", binaryAddition[3]);
+		    end
+	        end
+                $display("Block 0:", "%b", block[0]);
+                $display("Block 1:", "%b", block[1]);
+
             end
         end
         status = 1;
