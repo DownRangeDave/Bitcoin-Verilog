@@ -26,11 +26,14 @@ module Hash(
     input wire [2047:0] constantValues,
     output reg status
     );
+    reg [255:0] oldHashValues;
+    reg [255:0] hashValues;
     reg [1023:0] msg = 0;
     reg [2047:0] block [1:0];
     reg [0:1] blockCount;
     reg [31:0] binaryAddition [8:0];
-    integer i, j, k, m;
+    reg [31:0] compressTemp [1:0];
+    integer i, j, k, m, add;
     always @ (*) begin 
         status = 0;
         //Test for invalid header
@@ -38,8 +41,10 @@ module Hash(
         $display("FAIL");
         end
         else begin
+	    hashValues = initialHashValues;
+	    oldHashValues = initialHashValues;
             msg[1023:384] = header[639:0];
-            for(i=0; i<1; i=i+1) begin
+            for(i=0; i<2; i=i+1) begin
                 if(i==0) begin
                     msg[383] = 1; //Separator
                     //Message Length
@@ -55,7 +60,7 @@ module Hash(
                 //Split message into blocks based on blockCount
 	        for(j=0; j<blockCount; j=j+1) begin
 		    block[j][2047:1536] = msg[((512*blockCount)-(512*j))-1-:512];
-		    //Fill block
+		    //Fill rest of block
 		    for(k=16; k<64; k=k+1)begin
 			    binaryAddition[0] = equationCompute(0,17,19,10,block[j][(2047-(32*(k-2)))-:32]);
 			    binaryAddition[1] =  block[j][2047-(32*(k-7))-:32];
@@ -63,10 +68,65 @@ module Hash(
 			    binaryAddition[3] =  block[j][2047-(32*(k-16))-:32];
 			    block[j][2047-(32*k)-:32] = binaryAddition[0]+binaryAddition[1]+binaryAddition[2]+binaryAddition[3];
 		    end
+		    //Creating temp words for compression
+		    for(k=0; k<64; k=k+1)begin
+			binaryAddition[0] = equationCompute(1,6,11,25,hashValues[(255-(32*4))-:32]);
+			binaryAddition[2] = hashValues[(255-(32*7))-:32];
+			binaryAddition[3] = constantValues[(2047-(32*k))-:32];
+			binaryAddition[4] = block[j][(2047-(32*k))-:32];
+			//Choice
+			for(m=0; m<32; m=m+1)begin
+				if((hashValues[(255-(32*4)-m)-:1])==1)begin
+					binaryAddition[1][31-m] = hashValues[(255-(32*5)-m)-:1];
+				end
+				if((hashValues[(255-(32*4)-m)-:1])==0)begin
+					binaryAddition[1][31-m] = hashValues[(255-(32*6)-m)-:1];
+				end
+			end
+			compressTemp[0] = binaryAddition[0] + binaryAddition[1] + binaryAddition[2] + binaryAddition[3] + binaryAddition[4];
+			binaryAddition[0] = equationCompute(1,2,13,22,hashValues[255-:32]);
+			
+			for(m=0; m<32; m=m+1)begin
+				
+				add = hashValues[(255-m)-:1] + hashValues[(255-(32*1)-m)-:1] + hashValues[(255-(32*2)-m)-:1];
+				if(add == 2 | add == 3)begin
+					binaryAddition[1][31-m] = 1;
+				end
+				else begin
+					binaryAddition[1][31-m] = 0;
+				end
+				
+			end
+			compressTemp[1] = binaryAddition[0] + binaryAddition[1];
+			//Compression
+			//Move hashValues 1 down
+			for(m=7; m>0; m=m-1)begin
+				hashValues[(255-(32*m))-:32] = hashValues[(255-(32*(m-1)))-:32];
+			end
+			//Result of adding compressTemp[0] and compressTemp[1]
+			//is the first hashValue
+			hashValues[255-:32] = compressTemp[0] + compressTemp[1];
+			$display("%b", hashValues[255-:32]);
+			//compressTemp[0] gets added to the 4th hashValue
+			hashValues[(255-(32*4))-:32] = hashValues[(255-(32*4))-:32] + compressTemp[0]; 
+		    end
+		    //Add Hash Values to old Hash Values
+		    for(m=0; m<8; m=m+1)begin
+				hashValues[(255-(32*m))-:32] = hashValues[(255-(32*m))-:32] + oldHashValues[(255-(32*m))-:32];
+				oldHashValues[(255-(32*m))-:32] = hashValues[(255-(32*m))-:32];
+		    end
 	        end
-                $display("Block 0:", "%b", block[0]);
-                $display("Block 1:", "%b", block[1]);
-
+		if(i==0) begin
+			msg = 0;
+			msg[511:256] = hashValues;
+			/*
+			$display("%b", hashValues);
+			$display("%b", msg);	
+			*/
+		end
+		if(i==1) begin
+			$display("%b", hashValues);
+		end
             end
         end
         status = 1;

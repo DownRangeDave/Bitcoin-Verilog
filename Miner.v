@@ -21,6 +21,7 @@
 
 /*
 TODO:
+	Fix incorrect second hash
 */
 
 module Miner;
