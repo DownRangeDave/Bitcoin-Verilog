@@ -158,22 +158,12 @@ module Hash(
 	function [31:0] rightShift;
 	    input [5:0] shiftVal;
 	    input [31:0] word;
-	    reg [31:0] copy;
+	    reg [63:0] copy;
 	    begin
-	        copy = 0;
-	        case(shiftVal)
-	            2:  copy[31:32-2] = word[2-1:0];
-				6:  copy[31:32-6] = word[6-1:0];
-				7:  copy[31:32-7] = word[7-1:0];
-				11: copy[31:32-11] = word[11-1:0];
-				13: copy[31:32-13] = word[13-1:0];
-				17: copy[31:32-17] = word[17-1:0];
-	            18: copy[31:32-18] = word[18-1:0];
-	            19: copy[31:32-19] = word[19-1:0];    
-	            22: copy[31:32-22] = word[22-1:0];
-	            25: copy[31:32-25] = word[25-1:0];
-	        endcase
-	        rightShift = (word>>shiftVal)+copy;
+		    copy = 0;
+		    copy[63:32] = word;
+		    copy = copy>>shiftVal;
+		    rightShift = copy[63:32]+copy[31:0];
 	    end
 	endfunction
 endmodule

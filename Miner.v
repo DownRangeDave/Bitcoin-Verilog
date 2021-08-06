@@ -24,7 +24,7 @@ TODO:
 	Replace integers for reg
 	Combine hashValues and oldHashValues into array
 	Create target check
-	Improve Choice, Majority, and Right Shift operations
+	Improve Choice and Majority operations
 
 */
 
