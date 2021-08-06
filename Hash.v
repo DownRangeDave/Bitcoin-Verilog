@@ -28,7 +28,7 @@ module Hash(
     );
     reg [255:0] oldHashValues;
     reg [255:0] hashValues;
-    reg [1023:0] msg = 0;
+    reg [1023:0] msg;
     reg [2047:0] block [1:0];
     reg [0:1] blockCount;
     reg [31:0] binaryAddition [8:0];
@@ -41,6 +41,7 @@ module Hash(
             $display("FAIL");
         end
         else begin
+            msg = 0; //Clear input
             msg[1023:384] = header[639:0]; //Add header to input
             
             //SHA256 Computation
@@ -59,6 +60,7 @@ module Hash(
                     msg[8] = 1; //Message Length
                     blockCount = 1;
                 end
+                
                 //Loop by number of blocks
                 for(j=0; j<blockCount; j=j+1) begin
                     block[j][2047:1536] = msg[((512*blockCount)-(512*j))-1-:512]; //Split message into blocks based on blockCount
@@ -72,7 +74,7 @@ module Hash(
                     end
                         
                     //Creating temp words for compression
-                    for(k=0; k<64; k=k+1)begin
+                    for(k=0; k<64; k=k+1 )begin
                         
                         //compressTemp[0]
                         binaryAddition[0] = equationCompute(1,6,11,25,hashValues[(255-(32*4))-:32]);
@@ -93,9 +95,9 @@ module Hash(
                         //compressTemp[1]
                         binaryAddition[0] = equationCompute(1,2,13,22,hashValues[255-:32]);
                         //Majority operation
-                        for(m=0; m<32; m=m+1)begin
+                        for(m=0; m<32; m=m+1) begin
                             add = hashValues[(255-m)-:1] + hashValues[(255-(32*1)-m)-:1] + hashValues[(255-(32*2)-m)-:1];
-                            if(add == 2 | add == 3)begin
+                            if(add == 2 | add == 3) begin
                                 binaryAddition[1][31-m] = 1;
                             end
                             else begin
@@ -106,7 +108,7 @@ module Hash(
                         
                         //Compression
                         //Move hashValues 1 down
-                        for(m=7; m>0; m=m-1)begin
+                        for(m=7; m>0; m=m-1) begin
                             hashValues[(255-(32*m))-:32] = hashValues[(255-(32*(m-1)))-:32];
                         end
                         //First hash value is the result of compressTemp[0] + compressTemp[1]
@@ -114,14 +116,16 @@ module Hash(
                         //compressTemp[0] gets added to the 4th hashValue
                         hashValues[(255-(32*4))-:32] = hashValues[(255-(32*4))-:32] + compressTemp[0];
                     end
+                    
                     //Add Hash Values to old Hash Values
-                    for(m=0; m<8; m=m+1)begin
+                    for(m=0; m<8; m=m+1) begin
                         hashValues[(255-(32*m))-:32] = hashValues[(255-(32*m))-:32] + oldHashValues[(255-(32*m))-:32];
                         oldHashValues[(255-(32*m))-:32] = hashValues[(255-(32*m))-:32];
                     end
                 end
+               
                 if(i==0) begin
-                    msg = 0; //clear msg
+                    msg = 0; //Clear msg
                     msg[511:256] = hashValues; //Add 1st computed hash to input of second hash
                 end
                 if(i==1) begin
@@ -131,6 +135,7 @@ module Hash(
         end
         status = 1;
     end
+    
     function [31:0] equationCompute;
         input computeType;
 		input [5:0] shiftVal1, shiftVal2, shiftVal3;
@@ -139,7 +144,7 @@ module Hash(
 	    begin
 		    data[0] = rightShift(shiftVal1, word);
 		    data[1] = rightShift(shiftVal2, word);
-		    if(computeType == 0)begin
+		    if(computeType == 0) begin
 		        data[2] = word>>shiftVal3; //Normal Shift
 		    end
 		    else begin
@@ -148,6 +153,7 @@ module Hash(
 		    equationCompute = data[0]^data[1]^data[2]; //XOR
 	    end
 	endfunction
+	
 	function [31:0] rightShift;
 	    input [5:0] shiftVal;
 	    input [31:0] word;
