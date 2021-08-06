@@ -51,8 +51,8 @@ module Miner(
 		if(count == 10000) done = 1;
 		if(done == 0) begin
 		  count = count + 1;
-		  //Count is in the wrong endian
-		  header[31:0] = count[31:0];
+		  header[31:0] = {count[7:0],  count[15:8],  count[23:16],  count[31:24]};
+		  $display("%h", header[31:0]);
 		end
 		else done = 1;
 	end
