@@ -32,11 +32,11 @@ module hashComp(
     always@(posedge clk) begin
         if(rst) padding<=0;
         else begin 
-            padding[1023:384] <= header;
-            padding[383]<=1;
-            padding[382:10]<=0;
-            padding[6:0]<=0;
-            padding[7] <=1;
+            padding[1023:382] <= header;
+            padding[383:0]<=0; //Padding
+			padding[383]<=1; //separator
+            //Message Length
+			padding[7] <=1;
             padding[9]<=1;
         end
     end

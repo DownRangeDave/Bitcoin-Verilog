@@ -26,6 +26,6 @@ module messageSplit(
     );
     wire [511:0] firstBlock;
     wire [511:0] secondBlock;
-    assign firstBlock = message[1023:511]; //may not be right 
+    assign firstBlock = message[1023:512];
     assign secondBlock = message [511:0];
 endmodule
