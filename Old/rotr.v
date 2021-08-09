@@ -23,19 +23,18 @@
 module rotr
 #( parameter range=4)
 (
-    input clk,
-    input start,
     input [31:0] data,
     output  [31:0] outData
     );
     integer i;
-    reg A;
+    reg[31:0] A;
     reg [31:0] dataCopy;
-    initial begin 
+    initial begin
+        A=data; 
         dataCopy[31:32-range] = data[range-1:0];
-        dataCopy[31-range:0] = 0;
+       if(range<=31) dataCopy[31-range:0] = 0;
     end
-    assign outData = (data>>range)+dataCopy; 
+    assign outData =  (data>>range)+dataCopy; 
     /*
     always@(posedge clk)begin 
         if(start)begin 

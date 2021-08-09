@@ -20,13 +20,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module shr(
-    input start,
-    input [5:0] rightShift,
+module shr
+#(parameter range=4)(
+    
     input [31:0] data,
     output [31:0] shiftedData
     );
     integer i;
-    assign shiftedData = (start==1) ? data<<rightShift : 0;
+    assign shiftedData =  data>>range;
  
 endmodule
