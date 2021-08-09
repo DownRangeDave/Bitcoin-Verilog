@@ -24,11 +24,9 @@ module Function2(
     input [31:0] data,
     output [31:0] outputData
     );
-    wire [31:0] first;
-    wire [31:0] second;
-    wire [31:0] third;
-    rotr #(17) seven (data,first);
-    rotr #(19) eighteen (data,second);
-    shr #(10) three (data,third);
-    assign outputData = (first^second^third);
+    wire [31:0] shifted [2:0];
+    rotr #(17) seventeen (data,shifted[0]);
+    rotr #(19) nineteen (data,shifted[1]);
+    shr #(10) ten (data,shifted[2]);
+    assign outputData = (shifted[0]^shifted[1]^shifted[2]);
 endmodule

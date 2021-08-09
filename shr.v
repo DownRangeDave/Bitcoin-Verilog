@@ -26,7 +26,6 @@ module shr
     input [31:0] data,
     output [31:0] shiftedData
     );
-    integer i;
     assign shiftedData =  data>>range;
  
 endmodule

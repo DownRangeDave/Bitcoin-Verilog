@@ -26,11 +26,8 @@ module rotr
     input [31:0] data,
     output  [31:0] outData
     );
-    integer i;
-    reg[31:0] A;
     reg [31:0] dataCopy;
     initial begin
-        A=data; 
         dataCopy[31:32-range] = data[range-1:0];
        if(range<=31) dataCopy[31-range:0] = 0;
     end
