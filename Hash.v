@@ -21,21 +21,27 @@
 
 
 module Hash(
+    input clk,
     input wire [639:0] header,
     input wire [255:0] initialHashValues,
     input wire [2047:0] constantValues,
-    output reg status
+    output wire [255:0] outdata,
+    output wire status
     );
+    reg stat;
     reg [255:0] oldHashValues;
     reg [255:0] hashValues;
     reg [1023:0] msg;
     reg [2047:0] block [1:0];
-    reg [0:1] blockCount;
-    reg [31:0] binaryAddition [8:0];
+    reg [1:0] blockCount, i, j, add;
+    reg [31:0] binaryAddition [4:0];
     reg [31:0] compressTemp [1:0];
-    integer i, j, k, m, add;
+    reg [6:0] k;
+    reg [5:0] m;
+    assign status = stat;
+    assign outdata = hashValues;
     always @ (*) begin 
-        status = 0;
+        stat = 0;
         //Test for invalid header
         if (header === 640'bx) begin
             $display("FAIL");
@@ -129,12 +135,13 @@ module Hash(
                     msg[511:256] = hashValues; //Add 1st computed hash to input of second hash
                 end
                 if(i==1) begin
+                    //Convert endian
                     hashValues = {hashValues[7:0], hashValues[15:8], hashValues[23:16], hashValues[31:24], hashValues[39:32], hashValues[47:40], hashValues[55:48], hashValues[63:56], hashValues[71:64], hashValues[79:72], hashValues[87:80], hashValues[95:88], hashValues[103:96], hashValues[111:104], hashValues[119:112], hashValues[127:120], hashValues[135:128], hashValues[143:136], hashValues[151:144], hashValues[159:152], hashValues[167:160], hashValues[175:168], hashValues[183:176], hashValues[191:184], hashValues[199:192], hashValues[207:200], hashValues[215:208], hashValues[223:216], hashValues[231:224], hashValues[239:232], hashValues[247:240], hashValues[255:248]};
-                    $display("%h", hashValues);
+                    //$display("%h", hashValues);
                 end
             end
+        stat = 1;
         end
-        status = 1;
     end
     
     function [31:0] equationCompute;
