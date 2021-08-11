@@ -22,7 +22,7 @@
 
 module hashComp(
     input clk,
-    input rst,
+  
     input [639:0] header,
     output [1023:0] outputData
     );
@@ -30,14 +30,14 @@ module hashComp(
     reg[2**10-1:0] padding;
     assign outputData = padding;
     always@(posedge clk) begin
-        if(rst) padding<=0;
-        else begin 
-            padding[1023:382] <= header;
-            padding[383:0]<=0; //Padding
-			padding[383]<=1; //separator
-            //Message Length
-			padding[7] <=1;
-            padding[9]<=1;
-        end
+       
+        padding[1023:384] <= header;
+        padding[382:10]<=0; //Padding
+        padding[383]<=1; //separator
+        //Message Length
+        padding[7] <=1;
+        padding[8] <=0;
+        padding[6:0]<=0; //Padding
+        padding[9]<=1;
     end
 endmodule

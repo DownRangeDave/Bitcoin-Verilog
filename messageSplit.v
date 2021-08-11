@@ -21,11 +21,22 @@
 
 
 module messageSplit(
+    input clk,
     input [1023:0] message,
-    output [63:0] sha
+    output [31:0] sha
     );
+    reg [31:0] holder [2**4-1:0];
     wire [511:0] firstBlock;
     wire [511:0] secondBlock;
     assign firstBlock = message[1023:512];
     assign secondBlock = message [511:0];
+    
+    assign sha = holder[15];
+    integer i;
+    always@(posedge clk)begin 
+        for(i=0; i<16;i=i+1)begin 
+            holder[i] <= firstBlock[511-(i*32)-:32];
+        end        
+    
+    end
 endmodule
