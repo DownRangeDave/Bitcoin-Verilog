@@ -21,12 +21,13 @@
 
 
 module Function4(
+    input clk,
     input [31:0] data,
     output [31:0] outputData
     );
     wire [31:0] shifted [2:0];
-    rotr #(6) six (data,shifted[0]);
-    rotr #(11) eleven (data,shifted[1]);
-    rotr #(25) twentyfive (data,shifted[2]);
+    rotr #(6) six (clk,data,shifted[0]);
+    rotr #(11) eleven (clk,data,shifted[1]);
+    rotr #(25) twentyfive (clk,data,shifted[2]);
     assign outputData = (shifted[0]^shifted[1]^shifted[2]);
 endmodule

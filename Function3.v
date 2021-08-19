@@ -21,12 +21,13 @@
 
 
 module Function3(
+    input clk,
     input [31:0] data,
     output [31:0] outputData
     );
     wire [31:0] shifted [2:0];
-    rotr #(2) two (data,shifted[0]);
-    rotr #(13) thirteen (data,shifted[1]);
-    rotr #(22) twentytwo (data,shifted[2]);
+    rotr #(2) two (clk,data,shifted[0]);
+    rotr #(13) thirteen (clk,data,shifted[1]);
+    rotr #(22) twentytwo (clk,data,shifted[2]);
     assign outputData = (shifted[0]^shifted[1]^shifted[2]);
 endmodule
