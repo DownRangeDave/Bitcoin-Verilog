@@ -21,6 +21,7 @@
 
 
 module Function6(
+    input start,
     input [31:0] x,
     input [31:0] y,
     input [31:0] z,
@@ -32,5 +33,5 @@ module Function6(
     assign xy=x&y;
     assign xz=x&z;
     assign yz=y&z;
-    assign outputData = xy|xz|yz;
+    assign outputData = (start==1) ? xy|xz|yz:31'bz;
 endmodule

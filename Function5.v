@@ -22,6 +22,7 @@
 
 module Function5(
     input clk,
+   
     input rst,
     input [31:0] independent,
     input [31:0] dependentx,
@@ -31,9 +32,9 @@ module Function5(
     integer i;
     initial i=0;
     always@(posedge clk)begin
-        if(rst==1)begin 
+        if(~rst==1)begin 
             i<=0;
-            outputData<=0; 
+            outputData<=31'bz; 
         end
         else begin 
             for(i=0; i<=31; i=i+1)begin 
