@@ -34,13 +34,17 @@ module rotr
        if(range<=31) dataCopy[31-range:0] = 0;
     end
     */
-    wire [31:0] test;
+    wire [31:0] adder;
+    wire [31:32-range] partone;
+    wire [31-range:0] parttwo;
+   
     always@(posedge clk)begin 
          dataCopy[31:32-range] <= data[range-1:0];
        if(range<=31)begin  dataCopy[31-range:0] <= 0; end
     
     end
-    assign outData =  (data>>range)+dataCopy; 
+   // assign outData = (range<=31) ? (data>>range)+parttwo:(data>>range)+partone; 
+     assign outData = (data>>range)+dataCopy; 
     
     
     
