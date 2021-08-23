@@ -15,7 +15,7 @@ module TemporaryWord(
        output [31:0] outputSecond,
        output [31:0] outputBoth
     );
-        TemporaryWordOne first(clk,start,e,f,g,const,word,outputFirst);
+        TemporaryWordOne first(clk,start,e,f,g,h,const,word,outputFirst);
         TemporaryWordTwo second(clk,start,a,b,c,outputSecond);
         assign outputBoth = outputFirst+outputSecond;
 endmodule 

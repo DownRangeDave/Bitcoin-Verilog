@@ -44,7 +44,7 @@ module messageSplit
     assign sha = holder[15];
     reg [31:0] workingConst [2**6-1:0];
     integer i;
-    reg [3:0] A;//case
+    reg [5:0] A;//case
     reg [3:0] B;//case 
     integer delay;
     reg [31:0] firstBlockHolder;
@@ -64,7 +64,7 @@ module messageSplit
     
     reg [31:0] word;
     integer pos;
-    initial begin A=0; B=0; pos=0;end 
+    initial begin A=0; B=0; pos=0; word = holder[pos]; end 
      Function1 firstBlockfunc(clk,start,holder[i-15],alphaOutput);
      Function2 firstBlockfunc2(clk,start,holder[i-2],betaOutput);
      
@@ -248,8 +248,9 @@ module messageSplit
                     workingConst[63] = 32'b11000110011100010111100011110010;  
                     
                     i<=0;
-                    startCompression<=1;
-                     if(delay==delayparam)begin 
+                    
+                     if(delay==delayparam)begin
+                         startCompression<=1; 
                         A<=8;
                         delay<=0;
                         
@@ -258,13 +259,155 @@ module messageSplit
                     end
                     else begin delay<=delay+1; end
                 end
+                
                 8:begin 
-                    //Bout to do the commit the worst thing I've ever done
-                     
+                    h <= g;
                     
+                    A<=9;
                 
                 end
+                9:begin 
+                    g<=f;
+                    A<=10;                
+                end
+                10:begin 
+                    f<=e;
+                    A<=11; 
+                end
+                11:begin 
+                    e<=d;
+                    A<=12; 
+                end
+                12:begin 
+                    d<=c;
+                    A<=13;
+                    word<=holder[pos]; 
+                end
+                13:begin 
+                    c<=b;
+                    A<=14;
+                    startCompression<=1; 
+                end
+                14:begin 
+                    b<=a;
+                    A<=15;
+                end
+                15:begin 
+                    if(delay==delayparam)begin
+                         //startCompression<=1; 
+                        A<=16;
+                        delay<=0;
+                        
+                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
+
+                    end
+                    else begin delay<=delay+1; end
                 
+                end
+                16:begin 
+                   
+                   
+                    if(delay==delayparam)begin
+                         //
+                         a<=outputBoth;
+                         e<=e+outputFirst;
+                         startCompression<=0;
+                        if(pos<=63)begin 
+                             A<=17;
+                             
+                        end 
+                       else begin 
+                        A<=18;
+                        
+                       end
+                        delay<=0;
+                        pos<=pos+1;
+                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
+
+                    end
+                    else begin delay<=delay+1; end
+                end
+                17:begin 
+                   A<=8;
+                
+                end
+                18:begin 
+                
+                
+                end
+                /*
+                8:begin 
+                    //Bout to do the commit the worst thing I've ever done
+                   
+                    b <= a; 
+                    c <= b; 
+                    d <= c; 
+                    e <= d;
+                    f <=  e;
+                    g <=  f;
+                    h <= g;
+                    
+                    
+                    
+                    word<=holder[pos];
+                    if(delay==delayparam)begin
+                        
+                       
+                        A<=9;
+                        delay<=0;
+                        
+                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
+
+                    end
+                    else begin delay<=delay+1; end
+                
+                end
+                9:begin
+                     
+                    a<=outputBoth;
+                    
+                     
+                    if(delay==delayparam)begin
+                        word<=holder[pos];
+                        startCompression<=0;
+                        pos<=pos+1; 
+                        if(pos==64)begin 
+                            A<=11;
+                        
+                        end
+                        else A<=10;
+                        delay<=0;
+                        
+                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
+
+                    end
+                    else begin delay<=delay+1; end
+                  
+                end
+                
+               10:begin 
+                    
+                    if(delay==delayparam)begin
+                        
+                       startCompression<=1;
+                        A<=8;
+                        delay<=0;
+                    end
+                    else begin delay<=delay+1; end
+               
+               end
+               11:begin 
+                    $display("A: %h",a);
+                    $display("B: %h",b);                   
+                    $display("C: %h",c);
+                    $display("D: %h",d);
+                    $display("E: %h",e);
+                    $display("F: %h",f);
+                    $display("G: %h",g);
+               
+               end 
+               
+               */
             endcase 
         end 
           
