@@ -61,10 +61,10 @@ module messageSplit
     reg [31:0] choiceTwoOutput;
     reg [31:0] T1;
     reg [31:0] T2;
-    
+    reg [1:0]secondthrough;
     reg [31:0] word;
     integer pos;
-    initial begin A=0; B=0; pos=0; word = holder[pos]; end 
+    initial begin A=0; B=0; pos=0; word = holder[pos]; secondthrough=0;end 
      Function1 firstBlockfunc(clk,start,holder[i-15],alphaOutput);
      Function2 firstBlockfunc2(clk,start,holder[i-2],betaOutput);
      
@@ -281,7 +281,13 @@ module messageSplit
                 12:begin 
                     d<=c;
                     A<=13;
-                    word<=holder[pos]; 
+                    if(secondthrough!=1)begin 
+                        word<=holder[pos];
+                    end
+                    else begin 
+                        word<=secondholder[pos];
+                    end
+                     
                 end
                 13:begin 
                     c<=b;
@@ -312,13 +318,14 @@ module messageSplit
                          a<=outputBoth;
                          e<=e+outputFirst;
                          startCompression<=0;
-                        if(pos<=63)begin 
+                        if(pos<63)begin 
                              A<=17;
                              
                         end 
                        else begin 
                         A<=18;
-                        
+                        secondthrough<=secondthrough+1;
+                        pos<=0;
                        end
                         delay<=0;
                         pos<=pos+1;
@@ -331,83 +338,37 @@ module messageSplit
                    A<=8;
                 
                 end
-                18:begin 
-                
-                
-                end
-                /*
-                8:begin 
-                    //Bout to do the commit the worst thing I've ever done
-                   
-                    b <= a; 
-                    c <= b; 
-                    d <= c; 
-                    e <= d;
-                    f <=  e;
-                    g <=  f;
-                    h <= g;
-                    
-                    
-                    
-                    word<=holder[pos];
-                    if(delay==delayparam)begin
-                        
-                       
-                        A<=9;
-                        delay<=0;
-                        
-                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
-
-                    end
-                    else begin delay<=delay+1; end
-                
-                end
-                9:begin
-                     
-                    a<=outputBoth;
-                    
-                     
-                    if(delay==delayparam)begin
-                        word<=holder[pos];
-                        startCompression<=0;
-                        pos<=pos+1; 
-                        if(pos==64)begin 
-                            A<=11;
-                        
-                        end
-                        else A<=10;
-                        delay<=0;
-                        
-                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
-
-                    end
-                    else begin delay<=delay+1; end
+                18:begin  
+                    pos<=0;
+                  if(secondthrough==2)begin 
+                    A<=20;
                   
+                  end 
+                  if(delay==delayparam)begin
+                     //startCompression<=1; 
+                        A<=19;
+                        delay<=0;
+                    
+                   // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
+
+                end
+                else begin delay<=delay+1; end
+                end
+                19:begin
+                    if(pos<63)begin 
+                         A<=8;
+                         secondthrough<=1;
+                    end 
+                   else begin 
+                    A<=20;
+                   end
+                   pos<=pos+1;
+                end
+                20:begin 
+                    $display("%h%h%h%h%h%h%h",a,b,c,d,e,f,g);
+                
                 end
                 
-               10:begin 
-                    
-                    if(delay==delayparam)begin
-                        
-                       startCompression<=1;
-                        A<=8;
-                        delay<=0;
-                    end
-                    else begin delay<=delay+1; end
-               
-               end
-               11:begin 
-                    $display("A: %h",a);
-                    $display("B: %h",b);                   
-                    $display("C: %h",c);
-                    $display("D: %h",d);
-                    $display("E: %h",e);
-                    $display("F: %h",f);
-                    $display("G: %h",g);
-               
-               end 
-               
-               */
             endcase 
         end 
           
