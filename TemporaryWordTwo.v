@@ -30,7 +30,7 @@ module TemporaryWordTwo(
     );
     wire [31:0] func6Output;
     wire [31:0] func4Output;
-    Function4 func4(clk,rst,a,func4Output);
+    Function3 func3(clk,rst,a,func4Output);
     Function6 maj(rst,a,b,c,func6Output);
     assign outputData = func4Output+func6Output;
     

@@ -30,5 +30,5 @@ module Function3(
     rotr #(2) two (clk,data,shifted[0]);
     rotr #(13) thirteen (clk,data,shifted[1]);
     rotr #(22) twentytwo (clk,data,shifted[2]);
-    assign outputData = (start==1) ? (shifted[0]^shifted[1]^shifted[2]):31'bz;
+    assign outputData = (start==1) ? (shifted[0]^shifted[1]^shifted[2]):32'bz;
 endmodule
