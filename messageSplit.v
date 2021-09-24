@@ -86,36 +86,17 @@ module messageSplit
         else begin 
             case(A)
                 0:begin
-                   
                     delay<=0;
                     firstBlockHolder<=32'bz;
                     secondBlockHolder<=32'bz; 
                     i<=0;
                     start<=0;
                     A<=1;
-                end 
-                1: begin 
-                    //start of making the first 16 words in  both blocks 
-                    firstBlockHolder<=firstBlock[511-(i*32)-:32]; //sets place holder
-                    secondBlockHolder<=secondBlock[511-(i*32)-:32];
-                    /*
-                    for(i=0; i<16;i=i+1)begin 
-                        holder[i] <= firstBlock[511-(i*32)-:32];
-                       
-                        secondholder[i] <= secondBlock[511-(i*32)-:32];
-                    end
-                    */
-                    //terrible idea but it should work 
-                    if(delay==delayparam)begin 
-                        A<=2;
-                        delay<=0;
-                    end
-                   else begin delay<=delay+1; end
-                        
                 end
-                2:begin //assigns holderblocks to ram
-                    holder[i]<=firstBlockHolder;
-                    secondholder[i]<=secondBlockHolder;
+                
+                1:begin //copy words from blocks into ram
+                    holder[i]<=firstBlock[511-(i*32)-:32];;
+                    secondholder[i]<=secondBlock[511-(i*32)-:32];
                     if(delay==delayparam)begin
                         $display("State: %d w%d %b\n",A,i,holder[i]);
                         $display("Second State: %d w%d %b\n",A,i,secondholder[i]);
