@@ -24,7 +24,7 @@ module rotr
 #( parameter range=4)
 (
     input [31:0] data,
-    output reg [31:0] outData
+    output [31:0] outData
     );
 
   assign outData[31-range:0] = data[31:range];
