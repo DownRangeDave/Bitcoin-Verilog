@@ -21,7 +21,7 @@
 
 
 module messageSplit
-#(parameter delayparam=15)
+#(parameter delayparam=0)
 (
     input clk,
     input rst,
@@ -30,25 +30,28 @@ module messageSplit
     );
     reg [31:0] holder [2**6-1:0];
     reg [31:0] secondholder [2**6-1:0];
+    reg [31:0] thirdHolder [2**6-1:0];
     wire [511:0] firstBlock;
     wire [511:0] secondBlock;
+    reg [511:0] thirdBlock;
     wire [31:0] alphaOutput;//used for functions 1 
     wire [31:0] betaOutput;//used for functions 2
-     wire [31:0] alphaOutputblk2;//used for functions 1 
+    wire [31:0] alphaOutputblk2;//used for functions 1 
     wire [31:0] betaOutputblk2;//used for functions 2
+    wire [31:0] alphaOutputblk3;//used for functions 1 
+    wire [31:0] betaOutputblk3;//used for functions 2
     reg start;
     reg startCompression;
     assign firstBlock = message [1023:512];
     assign secondBlock = message[511:0];
     
-    assign sha = holder[15];
     reg [31:0] workingConst [2**6-1:0];
     integer i;
     reg [5:0] A;//case
-    reg [3:0] B;//case 
     integer delay;
     reg [31:0] firstBlockHolder;
     reg [31:0] secondBlockHolder;
+    reg [31:0] thirdBlockHolder;
     reg [31:0] a;
     reg [31:0] b;
     reg [31:0] c;
@@ -57,30 +60,36 @@ module messageSplit
     reg [31:0] f;
     reg [31:0] g;
     reg [31:0] h;
-    reg [31:0] choiceOneOutput;
-    reg [31:0] choiceTwoOutput;
+    reg [31:0] a2;
+    reg [31:0] b2;
+    reg [31:0] c2;
+    reg [31:0] d2;
+    reg [31:0] e2;
+    reg [31:0] f2;
+    reg [31:0] g2;
+    reg [31:0] h2;
     reg [31:0] T1;
     reg [31:0] T2;
-    reg [1:0]secondthrough;
+    reg [1:0] secondthrough;
     reg [31:0] word;
+    reg [255:0] bigEndian;
+    reg [255:0] littleEndian;
     integer pos;
-    initial begin A=0; B=0; pos=0; word = holder[pos]; secondthrough=0;end 
-     Function1 firstBlockfunc(clk,start,holder[i-15],alphaOutput);
-     Function2 firstBlockfunc2(clk,start,holder[i-2],betaOutput);
-     
-     Function1 secondBlockfunc1(clk,start,secondholder[i-15],alphaOutputblk2);
-     Function2 secondBlockfunc2(clk,start,secondholder[i-2],betaOutputblk2);
-     
-     //FOR COMPRESSION
-     //Function3 firstBlockZero(clk,startCompression,);
-     //Function3 secondBlockZero();
-     
-     wire test;
-     wire [31:0] outputFirst;
-     wire [31:0] outputSecond;
-     wire [31:0] outputBoth;
-     TemporaryWord words(clk,startCompression,e,f,g,h,workingConst[pos],word,a,b,c,outputFirst,outputSecond,outputBoth);
-     
+    initial begin A=0; pos=0; word = holder[pos]; secondthrough=0;end 
+    Function1 firstBlockfunc(clk,start,holder[i-15],alphaOutput);
+    Function2 firstBlockfunc2(clk,start,holder[i-2],betaOutput);
+    
+    Function1 secondBlockfunc1(clk,start,secondholder[i-15],alphaOutputblk2);
+    Function2 secondBlockfunc2(clk,start,secondholder[i-2],betaOutputblk2);
+    
+    Function1 thirdBlockfunc1(clk,start,thirdHolder[i-15],alphaOutputblk3);
+    Function2 thirdBlockfunc2(clk,start,thirdHolder[i-2],betaOutputblk3);
+    
+    wire [31:0] outputFirst;
+    wire [31:0] outputSecond;
+    wire [31:0] outputBoth;
+    TemporaryWord words(clk,startCompression,e,f,g,h,workingConst[pos],word,a,b,c,outputFirst,outputSecond,outputBoth);
+
     always@(posedge clk)begin
         if(~rst==1)begin A<=0; start <=0;end
         else begin 
@@ -96,80 +105,54 @@ module messageSplit
                 
 		//Block Split
                 1:begin //copy words from blocks into ram
-                    holder[i]<=firstBlock[511-(i*32)-:32];;
+                    holder[i]<=firstBlock[511-(i*32)-:32];
                     secondholder[i]<=secondBlock[511-(i*32)-:32];
-                    if(delay==delayparam)begin
-                        $display("State: %d w%d %b\n",A,i,holder[i]);
-                        $display("Second State: %d w%d %b\n",A,i,secondholder[i]);
-
-                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
-                        A<=3;
-                        delay<=0;
-                    end
-                   else begin delay<=delay+1; end
-                
+                    A<=2;
+                    delay<=0;
                 end
-                3:begin //moves i to next position 
+                2:begin //moves i to next position 
                     if(i<15) begin 
                         A<=1;
                         i<=i+1;
                     end
                     else begin //when it becomes 15 and has done all 0-15 slots 
-                        A<=4;
+                        A<=3;
                         i<=i+1;
-                        start<=1;
+                        start<=1; //starts block functions
                     end
                 
                 end
+		
 		//Block Fill
-                4:begin 
+                3:begin 
                     firstBlockHolder<=betaOutput+holder[i-7]+alphaOutput+holder[i-16];//sets place holder
                     secondBlockHolder<=betaOutputblk2+secondholder[i-7]+alphaOutputblk2+secondholder[i-16];
                     if(delay==delayparam)begin 
-                        A<=5;
+                        A<=4;
                         delay<=0;
                     end
                     else begin delay<=delay+1; end
                 
                 end
-                5:begin 
+                4:begin 
                     holder[i]<=firstBlockHolder;
                     secondholder[i]<=secondBlockHolder;
-                    if(delay==delayparam)begin 
-                        A<=6;
-                        delay<=0;
-                        $display("State: %d w%d %b\n",A,i,holder[i]);
-                        $display("Second State: %d w%d %b\n",A,i,secondholder[i]);
-                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
-
-                    end
-                    else begin delay<=delay+1; end
+                    A<=5;
+                    delay<=0; 
                 end 
-                6:begin 
+                5:begin 
                      if(i<63) begin 
-                        A<=4;
+                        A<=3;
                         i<=i+1;
                     end
-                    else begin //when it becomes 15 and has done all 0-15 slots 
-                        A<=7;
-                       // i<=i+1;
+                    else begin //when it becomes 64 and has done all 16-64 slots 
+                        A<=6;
                         start<=0;
                     end
-                
-                
                 end
                 
-                7:begin //begin compression 
-                    /*
-                    a <= 32'd1779033703; 
-                    b <= 32'd3144134277; 
-                    c <= 32'd1013904242; 
-                    d <= 32'd2773480762; 
-                    e <= 32'd1359893119; 
-                    f <= 32'd2600822924; 
-                    g <= 32'd528734635;  
-                    h <= 32'd1541459225;
-                    */
+                6:begin //begin compression 
+                    //initialize constant values and hash values
                     a <= 32'b01101010000010011110011001100111;
                     b <= 32'b10111011011001111010111010000101;
                     c <= 32'b00111100011011101111001101110010;
@@ -178,6 +161,14 @@ module messageSplit
                     f <= 32'b10011011000001010110100010001100;
                     g <= 32'b00011111100000111101100110101011;
                     h <= 32'b01011011111000001100110100011001;
+                    a2 <= 32'b01101010000010011110011001100111;
+                    b2 <= 32'b10111011011001111010111010000101;
+                    c2 <= 32'b00111100011011101111001101110010;
+                    d2 <= 32'b10100101010011111111010100111010;
+                    e2 <= 32'b01010001000011100101001001111111;
+                    f2 <= 32'b10011011000001010110100010001100;
+                    g2 <= 32'b00011111100000111101100110101011;
+                    h2 <= 32'b01011011111000001100110100011001;
                     workingConst[0] <=  32'b01000010100010100010111110011000;   
                     workingConst[1] <=  32'b01110001001101110100010010010001;   
                     workingConst[2] <=  32'b10110101110000001111101111001111;   
@@ -244,135 +235,135 @@ module messageSplit
                     workingConst[63]<= 32'b11000110011100010111100011110010;  
                     
                     i<=0;
-                    
-                     if(delay==delayparam)begin
-                         startCompression<=1; 
-                        A<=8;
-                        delay<=0;
-                        
-                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
-
-                    end
-                    else begin delay<=delay+1; end
+                    startCompression<=1; 
+			        pos<=0;
+                    A<=7;
+                    delay<=0;
                 end
-                
-                8:begin 
-                    h <= g;
-                    
-                    A<=9;
-                
-                end
-                9:begin 
-                    g<=f;
-                    A<=10;                
-                end
-                10:begin 
-                    f<=e;
-                    A<=11; 
-                end
-                11:begin 
-                    e<=d;
-                    A<=12; 
-                end
-                12:begin 
-                    d<=c;
-                    A<=13;
-                    if(secondthrough!=1)begin 
+                7:begin //Select word from block
+                    if(secondthrough==0)begin 
                         word<=holder[pos];
                     end
-                    else begin 
+                    else if(secondthrough==1) begin 
                         word<=secondholder[pos];
                     end
-                     
-                end
-                13:begin 
-                    c<=b;
-                    A<=14;
-                    startCompression<=1; 
-                end
-                14:begin 
-                    b<=a;
-                    A<=15;
-                end
-                15:begin 
-                    if(delay==delayparam)begin
-                         //startCompression<=1; 
-                        A<=16;
-                        delay<=0;
-                        
-                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
-
+                    else begin //secondthrough==2
+                        word<=thirdHolder[pos];
                     end
-                    else begin delay<=delay+1; end
-                
+                    A<=8;
                 end
-                16:begin 
-                   
-                   
-                    if(delay==delayparam)begin
-                         //
-                         a<=outputBoth;
-                         e<=e+outputFirst;
-                         startCompression<=0;
-                        if(pos<63)begin 
-                             A<=17;
-                             
-                        end 
-                       else begin 
-                        A<=18;
-                        secondthrough<=secondthrough+1;
-                        pos<=0;
-                       end
-                        delay<=0;
+                8:begin //Save computed temporary words from functions
+                    T1<=outputFirst;
+                    T2<=outputSecond;
+                    A<=9;
+                end
+                9:begin //Move hash values down one
+                    h=g;
+                    g=f;
+                    f=e;
+                    e=d;
+                    d=c;
+                    c=b;
+                    b=a;
+                    A<=10;
+                end
+                10:begin 
+                    if(pos<64)begin //Compression
+			            a<=T1+T2;
+			            e<=e+T1;
                         pos<=pos+1;
-                       // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
+                        if(pos!=63)begin
+                            A<=7;
+                        end
+                    end 
+                    else begin //Add final hash values to original hash values for computing second block
+                        secondthrough<=secondthrough+1;
+                        A<=11;
+                        pos<=0;
+                        a<=a+a2;
+                        b<=b+b2;
+                        c<=c+c2;
+                        d<=d+d2;
+                        e<=e+e2;
+                        f<=f+f2;
+                        g<=g+g2;
+                        h<=h+h2;
+                    end
+                end
+                11:begin 
+                    if(secondthrough==1)begin //Copies final hash values to original hash values
+                        a2<=a;
+                        b2<=b;
+                        c2<=c;
+                        d2<=d;
+                        e2<=e;
+                        f2<=f;
+                        g2<=g;
+                        h2<=h;
+                        A<=7;
+                    end
+                    else if(secondthrough==2) begin //populates thirdBlock
+                        A<=12; 
+                        thirdBlock<={a,b,c,d,e,f,g,h,1'b1,246'b0,1'b1,8'b0}; 
+                        i<=0;
+                    end
+                    else begin //secondthrough==3
+                        A<=17;
+                    end
+                
+                end
+                12:begin  //Separate thirdBlock into 32 bit words
+                    thirdHolder[i]<=thirdBlock[511-(i*32)-:32];
+                    A<=13;
 
+                end
+                13:begin
+                    if(i<16)begin 
+                        A<=12;
+                        i<=i+1;
+                    end 
+                    else begin 
+                        A<=14;
+                        start<=1;
+                    end 
+                end
+
+                14:begin //thirdBlock Fill
+                    thirdBlockHolder<=betaOutputblk3+thirdHolder[i-7]+alphaOutputblk3+thirdHolder[i-16];
+                    if(delay==delayparam)begin 
+                        A<=15;
+                        delay<=0;
                     end
                     else begin delay<=delay+1; end
                 end
-                17:begin 
-                   A<=8;
-                
+                15:begin
+                    thirdHolder[i]<=thirdBlockHolder;
+                    A<=16;
                 end
-                18:begin  
-                    pos<=0;
-                  if(secondthrough==2)begin 
-                    A<=20;
-                  
-                  end 
-                  if(delay==delayparam)begin
-                     //startCompression<=1; 
-                        A<=19;
-                        delay<=0;
-                    
-                   // $display("SecondHolder State: %d w%d %b\n",A,i,secondholder[i]);  
-
+                16:begin
+                    if(i<63)begin
+                        A<=14;
+                        i<=i+1;
+                    end
+                    else begin 
+                        A<=6; //Start 2nd hash compression
+                        start<=0;
+                    end
                 end
-                else begin delay<=delay+1; end
+                17:begin
+                    bigEndian<={a,b,c,d,e,f,g,h};
+                    A<=18;
+                end
+                18:begin
+                    $display("%h",bigEndian);
+                    littleEndian<={h[7:0],h[15:8],h[23:16],h[31:24],g[7:0],g[15:8],g[23:16],g[31:24],f[7:0],f[15:8],f[23:16],f[31:24],e[7:0],e[15:8],e[23:16],e[31:24],d[7:0],d[15:8],d[23:16],d[31:24],c[7:0],c[15:8],c[23:16],c[31:24],b[7:0],b[15:8],b[23:16],b[31:24],a[7:0],a[15:8],a[23:16],a[31:24]};
+                    A<=19;
                 end
                 19:begin
-                    if(pos<63)begin 
-                         A<=8;
-                         secondthrough<=1;
-                    end 
-                   else begin 
+                    $display("%h",littleEndian);
                     A<=20;
-                   end
-                   pos<=pos+1;
                 end
-                20:begin 
-                    $display("%h%h%h%h%h%h%h%h",a,b,c,d,e,f,g,h);
-                
-                end
-                
             endcase 
-        end 
-          
+        end   
     end
-    
-  
-    
-    
-    
-    
 endmodule
