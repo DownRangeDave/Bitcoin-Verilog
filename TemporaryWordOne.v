@@ -34,6 +34,6 @@ module TemporaryWordOne(
     wire [31:0] func5Out;
     wire [31:0] func4Out;
     Function4 rotrE(clk,rst,e,func4Out);
-    Function5 choice(clk,rst,e,f,g,func5Out);
+    Function5 choice(clk,e,f,g,func5Out);
     assign outputData = func4Out+func5Out+h+const+word;
 endmodule
