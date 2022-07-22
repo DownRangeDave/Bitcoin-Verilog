@@ -23,29 +23,11 @@
 module rotr
 #( parameter range=4)
 (
-    input clk,
     input [31:0] data,
-    output  [31:0] outData
+    output [31:0] outData
     );
-    reg [31:0] dataCopy;
-    /*
-    initial begin
-        dataCopy[31:32-range] = data[range-1:0];
-       if(range<=31) dataCopy[31-range:0] = 0;
-    end
-    */
-    wire [31:0] adder;
-    wire [31:32-range] partone;
-    wire [31-range:0] parttwo;
-   
-    always@(posedge clk)begin 
-         dataCopy[31:32-range] <= data[range-1:0];
-       if(range<=31)begin  dataCopy[31-range:0] <= 0; end
-    
-    end
-   // assign outData = (range<=31) ? (data>>range)+parttwo:(data>>range)+partone; 
-     assign outData = (data>>range)+dataCopy; 
-    
-    
-    
+
+  assign outData[31-range:0] = data[31:range];
+  assign outData[31-:range] = data[0+:range];
+
 endmodule
