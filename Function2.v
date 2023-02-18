@@ -27,8 +27,8 @@ module Function2(
     output [31:0] outputData
     );
     wire [31:0] shifted [2:0];
-    rotr #(17) seventeen (clk,data,shifted[0]);
-    rotr #(19) nineteen (clk,data,shifted[1]);
+    rotr #(17) seventeen (data,shifted[0]);
+    rotr #(19) nineteen (data,shifted[1]);
     shr #(10) ten (data,shifted[2]);
     assign outputData = (start==1) ?(shifted[0]^shifted[1]^shifted[2]):31'bz;
 endmodule
