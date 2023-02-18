@@ -115,12 +115,12 @@ module compression(
                 tempWords[0]<=hashValues[7][1]+constantValues[i];
                 tempWords[1]<=(hashValues[0][1]&hashValues[1][1])|(hashValues[0][1]&hashValues[2][1])|(hashValues[1][1]&hashValues[2][1]); //Majority function
                 //Prep for rotate right
-                func3DWords[0]<={hashValues[0][1],{32{1'b0}}};
-                func3DWords[1]<={hashValues[0][1],{32{1'b0}}};
-                func3DWords[2]<={hashValues[0][1],{32{1'b0}}};
-                func4DWords[0]<={hashValues[4][1],{32{1'b0}}};
-                func4DWords[1]<={hashValues[4][1],{32{1'b0}}};
-                func4DWords[2]<={hashValues[4][1],{32{1'b0}}};
+                func3DWords[0]<={{2'b0}, hashValues[0][1],{30{1'b0}}};
+                func3DWords[1]<={{13'b0}, hashValues[0][1],{19{1'b0}}};
+                func3DWords[2]<={{22'b0}, hashValues[0][1],{10{1'b0}}};
+                func4DWords[0]<={{6'b0}, hashValues[4][1],{26{1'b0}}};
+                func4DWords[1]<={{11'b0}, hashValues[4][1],{21{1'b0}}};
+                func4DWords[2]<={{25'b0}, hashValues[4][1],{7{1'b0}}};
                 //Choice function
                 choice[31]<= hashValues[4][1][31] ? hashValues[5][1][31] : hashValues[6][1][31];
                 choice[30]<= hashValues[4][1][30] ? hashValues[5][1][30] : hashValues[6][1][30];
@@ -164,18 +164,8 @@ module compression(
                 hashValues[1][1]<=hashValues[0][1];
                 A<=1;
             end
+            
             1:begin
-                //Shift right
-                func3DWords[0]<=func3DWords[0]>>2;
-                func3DWords[1]<=func3DWords[1]>>13;
-                func3DWords[2]<=func3DWords[2]>>22;
-                func4DWords[0]<=func4DWords[0]>>6;
-                func4DWords[1]<=func4DWords[1]>>11;
-                func4DWords[2]<=func4DWords[2]>>25;
-
-                A<=2;
-            end
-            2:begin
                 //Add back in to lower half word to complete rotate right
                 func3Words[0]<=func3DWords[0][63:32]+func3DWords[0][31:0];
                 func3Words[1]<=func3DWords[1][63:32]+func3DWords[1][31:0];
@@ -184,21 +174,21 @@ module compression(
                 func4Words[1]<=func4DWords[1][63:32]+func4DWords[1][31:0];
                 func4Words[2]<=func4DWords[2][63:32]+func4DWords[2][31:0];
                 
+                A<=2;
+            end
+            2:begin
+                tempWords[0]<=tempWords[0]+(func4Words[0]^func4Words[1]^func4Words[2])+choice+(blockCount ? secondBlock[(2047-(i*32))-:32] : firstBlock[(2047-(i*32))-:32]);
+                tempWords[1]<=tempWords[1]+(func3Words[0]^func3Words[1]^func3Words[2]);
+                
                 A<=3;
             end
             3:begin
-                tempWords[0]<=tempWords[0]+(func4Words[0]^func4Words[1]^func4Words[2])+choice+(blockCount ? secondBlock[(2047-(i*32))-:32] : firstBlock[(2047-(i*32))-:32]);
-                tempWords[1]<=tempWords[1]+(func3Words[0]^func3Words[1]^func3Words[2]);
+                hashValues[4][1]<=hashValues[4][1]+tempWords[0];
+                hashValues[0][1]<=tempWords[0]+tempWords[1];
                 
                 A<=4;
             end
             4:begin
-                hashValues[4][1]<=hashValues[4][1]+tempWords[0];
-                hashValues[0][1]<=tempWords[0]+tempWords[1];
-                
-                A<=9;
-            end
-            9:begin
                 if(i>=63) begin
                     hashValues[0][0]<=hashValues[0][0]+hashValues[0][1];
                     hashValues[1][0]<=hashValues[1][0]+hashValues[1][1];
@@ -208,14 +198,14 @@ module compression(
                     hashValues[5][0]<=hashValues[5][0]+hashValues[5][1];
                     hashValues[6][0]<=hashValues[6][0]+hashValues[6][1];
                     hashValues[7][0]<=hashValues[7][0]+hashValues[7][1];
-                    A<=10;
+                    A<=5;
                 end
                 else begin
                     i<=i+1;
                     A<=0;
                 end
             end
-            10:begin
+            5:begin
                 hashValues[0][1]<=hashValues[0][0];
                 hashValues[1][1]<=hashValues[1][0];
                 hashValues[2][1]<=hashValues[2][0];
@@ -235,13 +225,13 @@ module compression(
                         firstDone<=1;
                     end
                     else outputHash<={hashValues[7][0][7:0],hashValues[7][0][15:8],hashValues[7][0][23:16],hashValues[7][0][31:24],hashValues[6][0][7:0],hashValues[6][0][15:8],hashValues[6][0][23:16],hashValues[6][0][31:24],hashValues[5][0][7:0],hashValues[5][0][15:8],hashValues[5][0][23:16],hashValues[5][0][31:24],hashValues[4][0][7:0],hashValues[4][0][15:8],hashValues[4][0][23:16],hashValues[4][0][31:24],hashValues[3][0][7:0],hashValues[3][0][15:8],hashValues[3][0][23:16],hashValues[3][0][31:24],hashValues[2][0][7:0],hashValues[2][0][15:8],hashValues[2][0][23:16],hashValues[2][0][31:24],hashValues[1][0][7:0],hashValues[1][0][15:8],hashValues[1][0][23:16],hashValues[1][0][31:24],hashValues[0][0][7:0],hashValues[0][0][15:8],hashValues[0][0][23:16],hashValues[0][0][31:24]};
-                    A<=11;
+                    A<=6;
                 end
             end
-            11:begin
+            6:begin
                 $display($time);
                 $display("%h",outputHash);
-                A<=12;
+                A<=7;
             end
         endcase
     end
